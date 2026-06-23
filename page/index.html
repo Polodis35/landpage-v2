@@ -1,0 +1,2157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OSMX — Dijital Dönüşümde Akıllı Çözümler. Yazılım geliştirme, otomasyon, yapay zeka ve dijital danışmanlık.">
+    <title>OSMX — Dijital Dönüşümde Akıllı Çözümler</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts: Syne (display), JetBrains Mono (mono), Manrope (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        /* ========== RESET & BASE ========== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* OSMX Marka Paleti — renk kodları.txt (KORUNDU) */
+            --bg: #1a1b13;          /* carbon black — ana arka plan */
+            --bg-elevated: #232520; /* yüzey kartları için */
+            --surface: #2a2c26;     /* kart yüzeyi */
+            --surface-hover: #353832;
+            --surface-strong: #3a3d36; /* form input için kontrastlı yüzey */
+            --border: rgba(199, 193, 170, 0.10); /* pale oak ile */
+            --border-strong: rgba(199, 193, 170, 0.22); /* form/odak kontrastı */
+            --border-accent: rgba(147, 201, 60, 0.30); /* yellow green ile */
+            --border-accent-strong: rgba(147, 201, 60, 0.55);
+            --text: #c7c1aa;         /* pale oak — birincil metin */
+            --text-muted: rgba(199, 193, 170, 0.62);
+            --text-dim: rgba(199, 193, 170, 0.38);
+            --green: #93c93c;        /* yellow green — birincil vurgu */
+            --green-bright: #a8dc4f;
+            --green-glow: rgba(147, 201, 60, 0.45);
+            --green-dim: rgba(147, 201, 60, 0.08);
+            --olive: #38501d;        /* olive leaf — derinlik */
+            --ebony: #59584c;        /* ebony — muted vurgu */
+
+            --font-display: 'Syne', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-body: 'Manrope', sans-serif;
+
+            /* Tutarlı spacing scale — 4px tabanlı */
+            --space-1: 0.5rem;   /* 8px */
+            --space-2: 1rem;     /* 16px */
+            --space-3: 1.5rem;   /* 24px */
+            --space-4: 2rem;     /* 32px */
+            --space-5: 3rem;     /* 48px */
+            --space-6: 4rem;     /* 64px */
+            --space-7: 6rem;     /* 96px */
+            --space-8: 7.5rem;   /* 120px */
+
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Smooth scroll için nav yüksekliği kadar offset */
+        section[id] {
+            scroll-margin-top: 80px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-weight: 400;
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        ::selection {
+            background: var(--green);
+            color: var(--bg);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+        }
+
+        /* ========== ARKA PLAN KATMANLARI ========== */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+            background-size: 80px 80px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 90%);
+        }
+
+        .noise-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ========== TYPOGRAPHY HELPERS ========== */
+        .mono-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--green);
+        }
+
+        .display {
+            font-family: var(--font-display);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.03em;
+        }
+
+        /* ========== NAVIGATION ========== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1.5rem 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.4s var(--ease-out);
+        }
+
+        .nav.scrolled {
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 3rem;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            background: var(--green);
+            color: var(--bg);
+            display: grid;
+            place-items: center;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: -0.05em;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            position: relative;
+            transition: color 0.3s var(--ease-out);
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--green);
+            transition: width 0.4s var(--ease-out);
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-links a:hover::before {
+            width: 100%;
+        }
+
+        .nav-cta {
+            padding: 0.65rem 1.25rem;
+            border: 1px solid var(--border-accent);
+            border-radius: 100px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+            transition: all 0.3s var(--ease-out);
+        }
+
+        .nav-cta:hover {
+            background: var(--green);
+            color: var(--bg);
+            border-color: var(--green);
+        }
+
+        /* ========== LAYOUT ========== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        section {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Tutarlı section padding — 96-120px aralığı */
+        .section-pad {
+            padding: var(--space-7) 0; /* 96px */
+        }
+
+        .section-pad-lg {
+            padding: var(--space-8) 0; /* 120px */
+        }
+
+        /* ========== HERO ========== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 8rem 0 var(--space-5);
+            position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: var(--space-5);
+            align-items: center;
+        }
+
+        .hero-content {
+            position: relative;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            background: rgba(166, 226, 46, 0.04);
+            margin-bottom: var(--space-4);
+        }
+
+        .hero-tag-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green-glow);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        .hero-title {
+            font-size: clamp(3.5rem, 8vw, 7rem);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title .accent {
+            color: var(--green);
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .hero-sub {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            max-width: 480px;
+            margin-bottom: var(--space-5);
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 1rem 1.75rem;
+            background: var(--green);
+            color: var(--bg);
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s var(--ease-out);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s var(--ease-out);
+        }
+
+        .btn-primary:hover::after {
+            transform: translateX(100%);
+        }
+
+        .btn-primary:hover {
+            background: var(--green-bright);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px var(--green-glow);
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 1rem 1.25rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s var(--ease-out);
+        }
+
+        .btn-ghost:hover {
+            color: var(--green);
+        }
+
+        .btn-ghost svg {
+            transition: transform 0.3s var(--ease-out);
+        }
+
+        .btn-ghost:hover svg {
+            transform: translateX(4px);
+        }
+
+        /* ========== HERO VISUAL — istatistik kartları + akış diyagramı ========== */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        /* Üstteki 3 istatistik kartı */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .stat-card {
+            padding: 1.25rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            transition: all 0.4s var(--ease-out);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(147, 201, 60, 0.12);
+        }
+
+        .stat-num {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--green);
+            letter-spacing: -0.03em;
+            margin-bottom: 0.4rem;
+        }
+
+        .stat-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        /* Otomasyon akış diyagramı */
+        .hero-flow {
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg-elevated);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-flow::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 80% 20%, var(--green-dim) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-flow-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .hero-flow-title {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--green);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .hero-flow-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .hero-flow-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+
+        .hero-flow-dots span:first-child { background: var(--green); }
+
+        .flow-nodes {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .flow-node {
+            flex: 1;
+            padding: 0.75rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text);
+            text-align: center;
+            transition: all 0.3s var(--ease-out);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .flow-node.accent {
+            border-color: var(--border-accent);
+            color: var(--green);
+            background: var(--green-dim);
+        }
+
+        .flow-arrow {
+            color: var(--green);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+
+        /* ========== TRUST BAR — hero altı ========== */
+        .trust-bar {
+            margin-top: var(--space-5);
+            padding: var(--space-3) 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trust-bar::before,
+        .trust-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 120px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .trust-bar::before {
+            left: 0;
+            background: linear-gradient(90deg, var(--bg), transparent);
+        }
+
+        .trust-bar::after {
+            right: 0;
+            background: linear-gradient(-90deg, var(--bg), transparent);
+        }
+
+        .trust-label {
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .marquee-track {
+            display: flex;
+            gap: 3rem;
+            animation: marquee 30s linear infinite;
+            white-space: nowrap;
+        }
+
+        .marquee-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .marquee-item .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--green-glow);
+        }
+
+        .marquee-item.accent {
+            color: var(--green);
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ========== SECTION HEADER ========== */
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: var(--space-6);
+            gap: var(--space-4);
+            flex-wrap: wrap;
+        }
+
+        .section-head h2 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            max-width: 720px;
+        }
+
+        .section-head h2 .accent {
+            color: var(--green);
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .section-head p {
+            color: var(--text-muted);
+            max-width: 360px;
+            font-size: 0.95rem;
+        }
+
+        /* ========== HAKKIMIZDA ========== */
+        .about-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: var(--space-7);
+            align-items: start;
+        }
+
+        .about-left {
+            position: sticky;
+            top: 8rem;
+        }
+
+        .about-eyebrow {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--green);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .about-eyebrow::before {
+            content: '';
+            width: 32px;
+            height: 1px;
+            background: var(--green);
+        }
+
+        .about-headline {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 3.5vw, 3rem);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: var(--space-4);
+        }
+
+        .about-headline .accent {
+            color: var(--green);
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        /* Paragraf satır genişliği okunabilirlik için daraltıldı */
+        .about-right p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            max-width: 60ch; /* ~480px — okunabilir ölçü */
+        }
+
+        .about-right p strong {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .about-pillars {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: var(--space-5);
+            padding-top: var(--space-5);
+            border-top: 1px solid var(--border);
+        }
+
+        .pillar {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            transition: all 0.4s var(--ease-out);
+        }
+
+        .pillar:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-accent-strong);
+            box-shadow: 0 8px 24px rgba(147, 201, 60, 0.15);
+        }
+
+        .pillar-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--green-dim);
+            border: 1px solid var(--border-accent);
+            display: grid;
+            place-items: center;
+            color: var(--green);
+            flex-shrink: 0;
+            transition: all 0.3s var(--ease-out);
+        }
+
+        .pillar:hover .pillar-icon {
+            background: var(--green);
+            color: var(--bg);
+        }
+
+        .pillar-text h4 {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .pillar-text p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* ========== HİZMETLER (BENTO) — yeniden düzenlendi ========== */
+        .services {
+            border-top: 1px solid var(--border);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr); /* 12-col grid */
+            gap: 1rem;
+        }
+
+        .service-card {
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.5s var(--ease-out);
+            overflow: hidden;
+            min-height: 360px; /* tutarlı minimum yükseklik */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), var(--green-dim), transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s var(--ease-out);
+            pointer-events: none;
+        }
+
+        .service-card:hover {
+            border-color: var(--border-accent-strong);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(147, 201, 60, 0.12);
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Tutarlı grid span değerleri */
+        .service-card.large {
+            grid-column: span 6;
+            min-height: 360px;
+        }
+
+        .service-card.wide {
+            grid-column: span 4;
+        }
+
+        .service-card.medium {
+            grid-column: span 4;
+        }
+
+        .service-card.compact {
+            grid-column: span 4;
+        }
+
+        .service-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: var(--green-dim);
+            border: 1px solid var(--border-accent);
+            display: grid;
+            place-items: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s var(--ease-out);
+            overflow: hidden;
+        }
+
+        .service-icon img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: brightness(0) saturate(100%) invert(94%) sepia(34%) saturate(1017%) hue-rotate(38deg) brightness(101%) contrast(86%);
+            transition: transform 0.4s var(--ease-out);
+        }
+
+        .service-card:hover .service-icon {
+            background: var(--green);
+            box-shadow: 0 0 32px var(--green-glow);
+        }
+
+        .service-card:hover .service-icon img {
+            filter: brightness(0) saturate(100%) invert(8%) sepia(6%) saturate(1246%) hue-rotate(155deg) brightness(95%) contrast(92%);
+            transform: scale(1.1) rotate(-6deg);
+        }
+
+        .service-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
+        }
+
+        .service-card.large .service-title {
+            font-size: 1.85rem;
+        }
+
+        .service-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+
+        .service-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--green);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: gap 0.3s var(--ease-out);
+        }
+
+        .service-card:hover .service-link {
+            gap: 1rem;
+        }
+
+        /* Büyük kart içine terminal mockup — boş alan yerine */
+        .service-mockup {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            line-height: 1.7;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .service-mockup-line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .service-mockup-line .prompt {
+            color: var(--green);
+            user-select: none;
+        }
+
+        .service-mockup-line .cmd {
+            color: var(--text);
+        }
+
+        .service-mockup-line .comment {
+            color: var(--text-dim);
+        }
+
+        /* Hizmet görseli — ikon altında küçük görsel bar */
+        .service-visual {
+            margin-top: 1.25rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+        }
+
+        .service-visual-bar {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--surface);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .service-visual-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--w, 60%);
+            background: var(--green);
+            border-radius: 4px;
+        }
+
+        .service-visual-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--green);
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* ========== PROCESS / NUMBERS BAND — bağlayıcı ok akışı ========== */
+        .process {
+            border-top: 1px solid var(--border);
+            padding: var(--space-8) 0; /* 120px — geçiş netleştirildi */
+        }
+
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            position: relative;
+        }
+
+        /* Bağlayıcı çizgi — kartlar arası */
+        .process-grid::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 12.5%;
+            right: 12.5%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green) 20%, var(--green) 80%, transparent);
+            opacity: 0.4;
+            z-index: 0;
+        }
+
+        .process-item {
+            padding: 2.5rem 2rem;
+            border-left: 1px solid var(--border);
+            position: relative;
+            z-index: 1;
+        }
+
+        .process-item:first-child {
+            border-left: none;
+        }
+
+        /* Her kart arasına ok işareti */
+        .process-arrow {
+            position: absolute;
+            top: 50%;
+            right: -14px;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 1px solid var(--border-accent);
+            display: grid;
+            place-items: center;
+            color: var(--green);
+            z-index: 2;
+        }
+
+        .process-arrow svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .process-num {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+        }
+
+        .process-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .process-title .accent {
+            color: var(--green);
+        }
+
+        .process-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ========== SOSYAL KANIT — testimonial + rakamlar ========== */
+        .proof {
+            border-top: 1px solid var(--border);
+        }
+
+        .proof-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: var(--space-6);
+            align-items: start;
+        }
+
+        .proof-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .proof-stat {
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            transition: all 0.4s var(--ease-out);
+        }
+
+        .proof-stat:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-2px);
+        }
+
+        .proof-stat-num {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--green);
+            letter-spacing: -0.04em;
+            margin-bottom: 0.5rem;
+        }
+
+        .proof-stat-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .proof-stat-sub {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+        }
+
+        .testimonials {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .testimonial {
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            transition: all 0.4s var(--ease-out);
+        }
+
+        .testimonial:hover {
+            border-color: var(--border-accent);
+            transform: translateY(-2px);
+        }
+
+        .testimonial-quote {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .testimonial-quote::before {
+            content: '"';
+            color: var(--green);
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-right: 0.25rem;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .testimonial-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--green-dim);
+            border: 1px solid var(--border-accent);
+            display: grid;
+            place-items: center;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        .testimonial-name {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .testimonial-role {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+
+        /* ========== CTA / CONTACT ========== */
+        .contact {
+            padding: var(--space-8) 0; /* 120px — süreç geçişini netleştir */
+            border-top: 1px solid var(--border);
+        }
+
+        .contact-head {
+            margin-bottom: var(--space-6);
+        }
+
+        .contact-head h2 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            margin-bottom: 1rem;
+        }
+
+        .contact-head h2 .accent {
+            color: var(--green);
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .contact-head p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            max-width: 520px;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: var(--space-5);
+            align-items: start;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            transition: all 0.3s var(--ease-out);
+        }
+
+        .info-card:hover {
+            border-color: var(--border-accent);
+            background: var(--surface-hover);
+        }
+
+        .info-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--green);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .info-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Mini harita / illüstrasyon — sol tarafı doldurmak için */
+        .info-map {
+            margin-top: 0.5rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+            position: relative;
+            overflow: hidden;
+            min-height: 140px;
+        }
+
+        .info-map::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(199, 193, 170, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(199, 193, 170, 0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.5;
+        }
+
+        .info-map-pin {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--green);
+            display: grid;
+            place-items: center;
+            color: var(--bg);
+            box-shadow: 0 0 24px var(--green-glow);
+            animation: pulse 2s ease-in-out infinite;
+            z-index: 2;
+        }
+
+        .info-map-pin::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 1px solid var(--green);
+            opacity: 0.4;
+        }
+
+        .info-map-label {
+            position: absolute;
+            bottom: 1rem;
+            left: 1.5rem;
+            right: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-align: center;
+            z-index: 2;
+        }
+
+        /* Form — kontrast ve focus state belirginleştirildi */
+        .contact-form {
+            padding: 2.5rem;
+            border: 1px solid var(--border-strong);
+            border-radius: 16px;
+            background: var(--surface);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-form::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            background: radial-gradient(circle, var(--green-dim), transparent 70%);
+            pointer-events: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Form input — arka plan kontrastı artırıldı */
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.95rem 1rem;
+            background: var(--surface-strong); /* daha kontrastlı arka plan */
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            transition: all 0.3s var(--ease-out);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-dim);
+        }
+
+        /* Focus state — belirgin hale getirildi */
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--green);
+            background: var(--bg);
+            box-shadow: 0 0 0 3px var(--green-dim), 0 0 16px var(--green-glow);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: var(--font-body);
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--green);
+            color: var(--bg);
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s var(--ease-out);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-submit:hover {
+            background: var(--green-bright);
+            box-shadow: 0 12px 32px var(--green-glow);
+            transform: translateY(-2px);
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            padding: var(--space-5) 0 var(--space-3);
+            border-top: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-marquee {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200%;
+            opacity: 0.04;
+            pointer-events: none;
+            white-space: nowrap;
+            font-family: var(--font-display);
+            font-size: 18vw;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            animation: marquee 40s linear infinite;
+        }
+
+        .footer-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: var(--space-4);
+            list-style: none;
+        }
+
+        .footer-links a {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            transition: color 0.3s var(--ease-out);
+        }
+
+        .footer-links a:hover {
+            color: var(--green);
+        }
+
+        .footer-copy {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ========== UTILITIES ========== */
+        .glow-text {
+            text-shadow: 0 0 32px var(--green-glow);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
+            .container { padding: 0 2rem; }
+            .nav { padding: 1.25rem 2rem; }
+            .hero-grid { grid-template-columns: 1fr; gap: var(--space-5); }
+            .hero-stats { grid-template-columns: repeat(3, 1fr); }
+            .about-layout { grid-template-columns: 1fr; gap: var(--space-5); }
+            .about-left { position: static; }
+            .services-grid { grid-template-columns: repeat(6, 1fr); }
+            .service-card.large { grid-column: span 6; }
+            .service-card.wide,
+            .service-card.medium,
+            .service-card.compact { grid-column: span 3; }
+            .process-grid { grid-template-columns: repeat(2, 1fr); }
+            .process-grid::before { display: none; }
+            .process-item:nth-child(2n+1) { border-left: none; }
+            .process-arrow { display: none; }
+            .proof-grid { grid-template-columns: 1fr; gap: var(--space-4); }
+            .contact-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-stats { grid-template-columns: 1fr; gap: 0.5rem; }
+            .flow-nodes { flex-wrap: wrap; justify-content: center; }
+            .flow-arrow { display: none; }
+            .flow-node { font-size: 0.65rem; padding: 0.5rem 0.4rem; }
+            .hero-flow { padding: 1rem; }
+            .about-pillars { grid-template-columns: 1fr; }
+            .services-grid { grid-template-columns: repeat(2, 1fr); }
+            .service-card.large,
+            .service-card.wide,
+            .service-card.medium,
+            .service-card.compact { grid-column: span 2; }
+            .process-grid { grid-template-columns: 1fr; }
+            .process-item { border-left: none; border-top: 1px solid var(--border); padding: 2rem 1.5rem; }
+            .process-item:first-child { border-top: none; }
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 0 1.25rem; }
+            .nav { padding: 1rem 1.25rem; }
+            .nav-links { display: none; }
+            .hero { padding: 6rem 0 var(--space-4); }
+            .hero-title { font-size: 3rem; }
+            .services-grid { grid-template-columns: 1fr; }
+            .service-card.large,
+            .service-card.wide,
+            .service-card.medium,
+            .service-card.compact { grid-column: span 1; }
+            .form-row { grid-template-columns: 1fr; }
+            .section-head { flex-direction: column; align-items: flex-start; }
+        }
+
+        @media (max-width: 380px) {
+            .container { padding: 0 1rem; }
+            .stat-num { font-size: 1.5rem; }
+            .proof-stat-num { font-size: 2rem; }
+            .contact-form { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Arka plan katmanları -->
+    <div class="grid-bg"></div>
+    <div class="noise-bg"></div>
+
+    <!-- ========== NAVIGATION ========== -->
+    <nav class="nav" id="nav">
+        <a href="#" class="nav-logo">
+            <div class="nav-logo-mark">ΣX</div>
+            <span>OSMX</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#hakkimizda">Hakkımızda</a></li>
+            <li><a href="#hizmetler">Hizmetler</a></li>
+            <li><a href="#surec">Süreç</a></li>
+            <li><a href="#iletisim">İletişim</a></li>
+        </ul>
+        <a href="#iletisim" class="nav-cta">Proje Başlat →</a>
+    </nav>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <!-- Sol: Metin -->
+                <div class="hero-content" data-aos="fade-up" data-aos-duration="1000">
+                    <div class="hero-tag">
+                        <span class="hero-tag-dot"></span>
+                        <span class="mono-label">Yeni Projeler · 2026</span>
+                    </div>
+
+                    <h1 class="display hero-title">
+                        Dijital<br>
+                        <span class="accent">Dönüşümde</span><br>
+                        Akıllı Çözümler
+                    </h1>
+
+                    <p class="hero-sub">
+                        İşletmelerin süreçlerini hızlandıran, maliyetlerini azaltan ve rekabet gücünü artıran yazılım, otomasyon ve yapay zeka çözümleri tasarlıyoruz.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a href="#iletisim" class="btn-primary">
+                            Projeyi Başlat
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                        </a>
+                        <a href="#hizmetler" class="btn-ghost">
+                            Hizmetleri İncele
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Sağ: İstatistik kartları + otomasyon akış diyagramı -->
+                <div class="hero-visual" data-aos="fade-left" data-aos-duration="1200" data-aos-delay="200">
+                    <!-- 3 istatistik kartı -->
+                    <div class="hero-stats">
+                        <div class="stat-card">
+                            <div class="stat-num">60+</div>
+                            <div class="stat-label">Tamamlanan<br>Proje</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-num">%40</div>
+                            <div class="stat-label">Verimlilik<br>Artışı</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-num">5+</div>
+                            <div class="stat-label">Yıl<br>Deneyim</div>
+                        </div>
+                    </div>
+
+                    <!-- Otomasyon akış diyagramı (n8n tarzı) -->
+                    <div class="hero-flow">
+                        <div class="hero-flow-head">
+                            <span class="hero-flow-title">// Automation Flow</span>
+                            <div class="hero-flow-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="flow-nodes">
+                            <div class="flow-node">Trigger</div>
+                            <span class="flow-arrow">→</span>
+                            <div class="flow-node">API</div>
+                            <span class="flow-arrow">→</span>
+                            <div class="flow-node accent">Process</div>
+                            <span class="flow-arrow">→</span>
+                            <div class="flow-node">Notify</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Bar — müşteri / sektör şeridi -->
+            <div class="trust-bar" data-aos="fade-up" data-aos-delay="400">
+                <div class="trust-label">// Güvendikleri Sektörler & Markalar</div>
+                <div class="marquee-track">
+                    <span class="marquee-item"><span class="dot"></span>E-TİCARET</span>
+                    <span class="marquee-item accent"><span class="dot"></span>FİNANS</span>
+                    <span class="marquee-item"><span class="dot"></span>SAĞLIK</span>
+                    <span class="marquee-item accent"><span class="dot"></span>LOJİSTİK</span>
+                    <span class="marquee-item"><span class="dot"></span>ÜRETİM</span>
+                    <span class="marquee-item accent"><span class="dot"></span>EDUCATION</span>
+                    <span class="marquee-item"><span class="dot"></span>RETAIL</span>
+                    <span class="marquee-item accent"><span class="dot"></span>REAL ESTATE</span>
+                    <span class="marquee-item"><span class="dot"></span>E-TİCARET</span>
+                    <span class="marquee-item accent"><span class="dot"></span>FİNANS</span>
+                    <span class="marquee-item"><span class="dot"></span>SAĞLIK</span>
+                    <span class="marquee-item accent"><span class="dot"></span>LOJİSTİK</span>
+                    <span class="marquee-item"><span class="dot"></span>ÜRETİM</span>
+                    <span class="marquee-item accent"><span class="dot"></span>EDUCATION</span>
+                    <span class="marquee-item"><span class="dot"></span>RETAIL</span>
+                    <span class="marquee-item accent"><span class="dot"></span>REAL ESTATE</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== HAKKIMIZDA ========== -->
+    <section class="about section-pad-lg" id="hakkimizda">
+        <div class="container">
+            <div class="about-layout">
+                <!-- Sol: Başlık -->
+                <div class="about-left" data-aos="fade-up">
+                    <div class="about-eyebrow">01 — Hakkımızda</div>
+                    <h2 class="about-headline">
+                        Teknolojiyi <span class="accent">verimliliğin</span> temel unsuru olarak görüyoruz.
+                    </h2>
+                </div>
+
+                <!-- Sağ: Metin -->
+                <div class="about-right" data-aos="fade-up" data-aos-delay="150">
+                    <p>
+                        <strong>OSMX</strong>, işletmelerin dijital dönüşüm süreçlerini hızlandırmak ve sürdürülebilir büyüme elde etmelerini sağlamak amacıyla kurulmuş bir yazılım ve teknoloji firmasıdır.
+                    </p>
+                    <p>
+                        Teknolojiyi yalnızca bir araç olarak değil, <strong>verimlilik, ölçeklenebilirlik ve uzun vadeli değer</strong> oluşturmanın temel unsurlarından biri olarak görüyoruz. Bu anlayışla işletmelerin süreçlerini iyileştiren, maliyetlerini azaltan ve rekabet gücünü artıran dijital çözümler geliştiriyoruz.
+                    </p>
+                    <p>
+                        Hedefimiz, işletmeleri geleceğin dijital dünyasına hazırlayan <strong>güvenilir, yenilikçi ve kalıcı sistemler</strong> oluşturmaktır.
+                    </p>
+
+                    <!-- Değerler — hover yükselme + border glow -->
+                    <div class="about-pillars">
+                        <div class="pillar" data-aos="fade-up" data-aos-delay="200">
+                            <div class="pillar-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            </div>
+                            <div class="pillar-text">
+                                <h4>Hız & Verim</h4>
+                                <p>Süreçlerinizi ölçülebilir şekilde hızlandırıyoruz.</p>
+                            </div>
+                        </div>
+                        <div class="pillar" data-aos="fade-up" data-aos-delay="250">
+                            <div class="pillar-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                            </div>
+                            <div class="pillar-text">
+                                <h4>Ölçeklenebilirlik</h4>
+                                <p>Büyüyen işletmenize uyum sağlayan altyapı.</p>
+                            </div>
+                        </div>
+                        <div class="pillar" data-aos="fade-up" data-aos-delay="300">
+                            <div class="pillar-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            </div>
+                            <div class="pillar-text">
+                                <h4>Kalıcılık</h4>
+                                <p>Uzun vadeli değer üreten sürdürülebilir sistemler.</p>
+                            </div>
+                        </div>
+                        <div class="pillar" data-aos="fade-up" data-aos-delay="350">
+                            <div class="pillar-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div class="pillar-text">
+                                <h4>Güvenilirlik</h4>
+                                <p>Modern ve güvenilir teknoloji standartları.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== HİZMETLER ========== -->
+    <section class="services section-pad" id="hizmetler">
+        <div class="container">
+            <div class="section-head" data-aos="fade-up">
+                <div>
+                    <div class="about-eyebrow" style="margin-bottom: 1rem;">02 — Hizmetler</div>
+                    <h2 class="display">
+                        İşletmenizi <span class="accent">geleceğe</span><br>taşıyan çözümler.
+                    </h2>
+                </div>
+                <p>Yazılımdan yapay zekaya, otomasyondan danışmanlığa — her ölçekte işletme için uçtan uca dijital çözümler.</p>
+            </div>
+
+            <div class="services-grid">
+                <!-- Yazılım Geliştirme — LARGE — terminal mockup ile -->
+                <div class="service-card large" data-aos="fade-up" data-aos-delay="0">
+                    <div class="service-icon">
+                        <img src="yazilim-gelistirme.png" alt="Yazılım Geliştirme">
+                    </div>
+                    <h3 class="service-title">Yazılım Geliştirme</h3>
+                    <p class="service-desc">
+                        İşletmelerin ihtiyaçlarına özel yazılım çözümleri geliştiriyoruz. Hazır sistemlerin yetersiz kaldığı noktalarda, süreçlerinize uyum sağlayan web, masaüstü ve özel amaçlı uygulamalar tasarlıyoruz.
+                    </p>
+                    <span class="service-link">Sürecinizi İnceleyelim →</span>
+                    <!-- Terminal mockup — boş dekoratif alan yerine -->
+                    <div class="service-mockup">
+                        <div class="service-mockup-line">
+                            <span class="prompt">$</span>
+                            <span class="cmd">npm init</span>
+                            <span class="comment">// yeni proje</span>
+                        </div>
+                        <div class="service-mockup-line">
+                            <span class="prompt">›</span>
+                            <span class="cmd">api.stack</span>
+                            <span class="comment">= build()</span>
+                        </div>
+                        <div class="service-mockup-line">
+                            <span class="prompt">✓</span>
+                            <span class="cmd">deploy</span>
+                            <span class="comment">// canlıya alındı</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Web Sitesi — COMPACT -->
+                <div class="service-card compact" data-aos="fade-up" data-aos-delay="100">
+                    <div class="service-icon">
+                        <img src="website.png" alt="Web Sitesi Geliştirme">
+                    </div>
+                    <h3 class="service-title">Web Sitesi Geliştirme</h3>
+                    <p class="service-desc">
+                        Markanızı dijital dünyada profesyonel şekilde temsil eden modern web siteleri geliştiriyoruz.
+                    </p>
+                    <span class="service-link">Detaylar →</span>
+                    <!-- Görsel bar — perf göstergesi -->
+                    <div class="service-visual">
+                        <div class="service-visual-bar" style="--w: 95%;"></div>
+                        <span class="service-visual-label">95</span>
+                    </div>
+                </div>
+
+                <!-- Veri Analizi — COMPACT -->
+                <div class="service-card compact" data-aos="fade-up" data-aos-delay="150">
+                    <div class="service-icon">
+                        <img src="data-analysis.png" alt="Veri Analizi">
+                    </div>
+                    <h3 class="service-title">Veri Analizi</h3>
+                    <p class="service-desc">
+                        Reklam, pazarlama, SEO ve operasyon verilerini değerlendirerek daha doğru kararlar almanıza yardımcı oluyoruz.
+                    </p>
+                    <span class="service-link">Detaylar →</span>
+                    <div class="service-visual">
+                        <div class="service-visual-bar" style="--w: 78%;"></div>
+                        <span class="service-visual-label">+78%</span>
+                    </div>
+                </div>
+
+                <!-- Otomasyon Sistemleri — COMPACT (yükseklik eşitlendi) -->
+                <div class="service-card compact" data-aos="fade-up" data-aos-delay="200">
+                    <div class="service-icon">
+                        <img src="automation.png" alt="Otomasyon Sistemleri">
+                    </div>
+                    <h3 class="service-title">Otomasyon Sistemleri</h3>
+                    <p class="service-desc">
+                        Tekrarlayan iş süreçlerini otomatikleştirerek operasyonel verimliliği artırıyoruz. Müşteri yönetimi, veri işleme, belge analizi ve iş akışı süreçleri için özel otomasyon sistemleri geliştiriyoruz.
+                    </p>
+                    <span class="service-link">Süreçlerinizi Otomatikleştirelim →</span>
+                    <div class="service-visual">
+                        <div class="service-visual-bar" style="--w: 88%;"></div>
+                        <span class="service-visual-label">24/7</span>
+                    </div>
+                </div>
+
+                <!-- Yapay Zeka — WIDE -->
+                <div class="service-card wide" data-aos="fade-up" data-aos-delay="250">
+                    <div class="service-icon">
+                        <img src="ai-icon.png" alt="Yapay Zeka Ajanları">
+                    </div>
+                    <h3 class="service-title">Yapay Zeka Ajanları</h3>
+                    <p class="service-desc">
+                        Müşteri takibi, raporlama, randevu yönetimi ve veri analizi süreçlerini otomatik hale getiren yapay zeka ajanları geliştiriyoruz.
+                    </p>
+                    <span class="service-link">Detaylar →</span>
+                    <div class="service-visual">
+                        <div class="service-visual-bar" style="--w: 92%;"></div>
+                        <span class="service-visual-label">AI</span>
+                    </div>
+                </div>
+
+                <!-- Danışmanlık — WIDE -->
+                <div class="service-card wide" data-aos="fade-up" data-aos-delay="300">
+                    <div class="service-icon">
+                        <img src="consultation.png" alt="Dijital Danışmanlık">
+                    </div>
+                    <h3 class="service-title">Dijital Danışmanlık</h3>
+                    <p class="service-desc">
+                        Süreç analizi, teknoloji değerlendirmesi ve dijital büyüme stratejileri konusunda danışmanlık sunuyoruz.
+                    </p>
+                    <span class="service-link">Detaylar →</span>
+                    <div class="service-visual">
+                        <div class="service-visual-bar" style="--w: 100%;"></div>
+                        <span class="service-visual-label">STRAT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== SÜREÇ / NUMBERS BAND — ok akışı ========== -->
+    <section class="process" id="surec">
+        <div class="container">
+            <div class="section-head" data-aos="fade-up">
+                <div>
+                    <div class="about-eyebrow" style="margin-bottom: 1rem;">03 — Süreç</div>
+                    <h2 class="display">
+                        Nasıl <span class="accent">çalışıyoruz</span>?
+                    </h2>
+                </div>
+            </div>
+
+            <div class="process-grid">
+                <div class="process-item" data-aos="fade-up" data-aos-delay="0">
+                    <div class="process-num">// 01</div>
+                    <h3 class="process-title">Keşif & <span class="accent">Analiz</span></h3>
+                    <p class="process-desc">İşletmenizin mevcut süreçlerini analiz ediyor, ihtiyaçlarınızı net şekilde tanımlıyoruz.</p>
+                    <div class="process-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+                <div class="process-item" data-aos="fade-up" data-aos-delay="100">
+                    <div class="process-num">// 02</div>
+                    <h3 class="process-title">Tasarım & <span class="accent">Planlama</span></h3>
+                    <p class="process-desc">Teknik mimari, kullanıcı deneyimi ve proje yol haritasını detaylı şekilde planlıyoruz.</p>
+                    <div class="process-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+                <div class="process-item" data-aos="fade-up" data-aos-delay="200">
+                    <div class="process-num">// 03</div>
+                    <h3 class="process-title">Geliştirme & <span class="accent">Test</span></h3>
+                    <p class="process-desc">Modern teknolojilerle çözümü inşa ediyor, kalite testleriyle stabil hale getiriyoruz.</p>
+                    <div class="process-arrow">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                    </div>
+                </div>
+                <div class="process-item" data-aos="fade-up" data-aos-delay="300">
+                    <div class="process-num">// 04</div>
+                    <h3 class="process-title">Teslim & <span class="accent">Destek</span></h3>
+                    <p class="process-desc">Çözümü devreye alıyor, uzun vadeli teknik destek ve sürekli iyileştirme sağlıyoruz.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== SOSYAL KANIT — testimonial + rakamlar ========== -->
+    <section class="proof section-pad">
+        <div class="container">
+            <div class="section-head" data-aos="fade-up">
+                <div>
+                    <div class="about-eyebrow" style="margin-bottom: 1rem;">04 — Sosyal Kanıt</div>
+                    <h2 class="display">
+                        Rakamlarla <span class="accent">OSMX</span>.
+                    </h2>
+                </div>
+                <p>İşletmelerin dijital dönüşüm yolculuğunda ürettiğimiz ölçülebilir değer.</p>
+            </div>
+
+            <div class="proof-grid">
+                <!-- Sol: Rakamlar -->
+                <div class="proof-stats">
+                    <div class="proof-stat" data-aos="fade-up" data-aos-delay="0">
+                        <div class="proof-stat-num">60+</div>
+                        <div class="proof-stat-label">Tamamlanan Proje</div>
+                        <div class="proof-stat-sub">Web, mobil ve özel yazılım teslimleri.</div>
+                    </div>
+                    <div class="proof-stat" data-aos="fade-up" data-aos-delay="100">
+                        <div class="proof-stat-num">%40</div>
+                        <div class="proof-stat-label">Ortalama Verimlilik Artışı</div>
+                        <div class="proof-stat-sub">Otomasyon + AI ajanları ile ölçüldü.</div>
+                    </div>
+                    <div class="proof-stat" data-aos="fade-up" data-aos-delay="200">
+                        <div class="proof-stat-num">12</div>
+                        <div class="proof-stat-label">Aktif Müşteri</div>
+                        <div class="proof-stat-sub">Farklı sektörlerden uzun vadeli ortaklıklar.</div>
+                    </div>
+                </div>
+
+                <!-- Sağ: Testimonial kartları -->
+                <div class="testimonials">
+                    <div class="testimonial" data-aos="fade-up" data-aos-delay="50">
+                        <p class="testimonial-quote">OSMX ile çalışmaya başladıktan sonra müşteri takip sürecimiz tamamen otomatikleşti. Artık ekibimiz satışa odaklanabiliyor.</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">AY</div>
+                            <div>
+                                <div class="testimonial-name">Ahmet Y.</div>
+                                <div class="testimonial-role">// CEO, E-ticaret Markası</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial" data-aos="fade-up" data-aos-delay="150">
+                        <p class="testimonial-quote">Veri analizi ve dashboard tarafında OSMX'in yaklaşımı çok net. Neyin ölçülmesi gerektiğini bize gösterdiler.</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">EK</div>
+                            <div>
+                                <div class="testimonial-name">Elif K.</div>
+                                <div class="testimonial-role">// Operasyon Direktörü, SaaS</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial" data-aos="fade-up" data-aos-delay="250">
+                        <p class="testimonial-quote">Yapay zeka ajanı projemiz 8 haftada canlıya alındı. ROI beklentilerimizin üzerinde gerçekleşti.</p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">MD</div>
+                            <div>
+                                <div class="testimonial-name">Mert D.</div>
+                                <div class="testimonial-role">// Kurucu, FinTech Girişimi</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== İLETİŞİM ========== -->
+    <section class="contact" id="iletisim">
+        <div class="container">
+            <div class="contact-head" data-aos="fade-up">
+                <div class="about-eyebrow" style="margin-bottom: 1.5rem;">05 — İletişim</div>
+                <h2 class="display">
+                    Projenizi <span class="accent">birlikte</span><br>hayata geçirelim.
+                </h2>
+                <p>Dijital dönüşüm yolculuğunuzda ilk adımı birlikte atalım. Detayları konuşmak için bize ulaşın.</p>
+            </div>
+
+            <div class="contact-grid">
+                <!-- Sol: İletişim bilgileri + mini harita -->
+                <div class="contact-info" data-aos="fade-up" data-aos-delay="100">
+                    <div class="info-card">
+                        <div class="info-label">// E-posta</div>
+                        <div class="info-value">info@osmx.com.tr</div>
+                        <div class="info-sub">7/24 yanıt süresi</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">// Telefon</div>
+                        <div class="info-value">+90 (212) 000 00 00</div>
+                        <div class="info-sub">Pzt — Cuma, 09:00 — 18:00</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">// Adres</div>
+                        <div class="info-value">İstanbul, Türkiye</div>
+                        <div class="info-sub">Levent Mah. Dijital Plaza No: 42</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">// Sosyal</div>
+                        <div class="info-value">@osmx</div>
+                        <div class="info-sub">LinkedIn · Instagram · X</div>
+                    </div>
+
+                    <!-- Mini harita / konum illüstrasyonu -->
+                    <div class="info-map">
+                        <div class="info-map-pin">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2C20 17.5 12 22 12 22z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <div class="info-map-label">// Levent · İstanbul</div>
+                    </div>
+                </div>
+
+                <!-- Sağ: Form — kontrast ve focus belirgin -->
+                <form class="contact-form" data-aos="fade-up" data-aos-delay="200" onsubmit="handleSubmit(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Ad Soyad</label>
+                            <input type="text" id="name" placeholder="Adınız Soyadınız" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="company">Şirket</label>
+                            <input type="text" id="company" placeholder="Şirketiniz (opsiyonel)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-posta</label>
+                        <input type="email" id="email" placeholder="ornek@firma.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="service">Hizmet</label>
+                        <input type="text" id="service" placeholder="Yazılım Geliştirme, Otomasyon, ...">
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Mesaj</label>
+                        <textarea id="message" placeholder="Projeniz hakkında kısaca bilgi verin..." required></textarea>
+                    </div>
+                    <button type="submit" class="form-submit">
+                        Mesajı Gönder
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-marquee">OSMX · OSMX · OSMX · OSMX · OSMX · OSMX · OSMX ·</div>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="nav-logo-mark">ΣX</div>
+                    <span>OSMX</span>
+                </div>
+                <ul class="footer-links">
+                    <li><a href="#hakkimizda">Hakkımızda</a></li>
+                    <li><a href="#hizmetler">Hizmetler</a></li>
+                    <li><a href="#surec">Süreç</a></li>
+                    <li><a href="#iletisim">İletişim</a></li>
+                </ul>
+            </div>
+            <div class="footer-copy">
+                <span>© 2026 OSMX — Tüm hakları saklıdır.</span>
+                <span>// Dijital Dönüşümde Akıllı Çözümler</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== SCRIPTS ========== -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // AOS init
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out-cubic',
+            once: true,
+            offset: 80,
+        });
+
+        // Nav scroll effect
+        const nav = document.getElementById('nav');
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+            lastScroll = currentScroll;
+        });
+
+        // Service card cursor tracking — glow takibi
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                card.style.setProperty('--mx', x + '%');
+                card.style.setProperty('--my', y + '%');
+            });
+        });
+
+        // Form submit handler
+        function handleSubmit(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('.form-submit');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                Mesaj Gönderildi
+            `;
+            btn.style.background = 'var(--green-bright)';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+                e.target.reset();
+            }, 2500);
+        }
+
+        // Smooth anchor scroll — native scrollIntoView, scroll-margin-top ile offset
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                if (targetId === '#' || targetId.length < 2) return;
+                const target = document.querySelector(targetId);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
