@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========== FONT TOKENS (KORUNDU) ========== */
+:root {
+  --font-display: "Syne", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ========== BASE ========== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: #1a1b13;
+  color: #c7c1aa;
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Section scroll offset — nav yüksekliği kadar */
+section[id] {
+  scroll-margin-top: 80px;
+}
+
+::selection {
+  background-color: #93c93c;
+  color: #1a1b13;
+}
+
+/* Focus visible — klavye navigasyonu için */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid #93c93c;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ========== TYPOGRAPHY HELPERS ========== */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.font-mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #93c93c;
+}
+
+/* ========== TRACE — sayfa imza motifi ========== */
+.trace-line {
+  stroke: #93c93c;
+  stroke-width: 1;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+}
+
+.trace-node {
+  fill: #1a1b13;
+  stroke: #93c93c;
+  stroke-width: 1.5;
+  transition: fill 0.3s ease;
+}
+
+.trace-node.filled {
+  fill: #93c93c;
+}
+
+/* ========== REDUCED MOTION ========== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========== ARKA PLAN KATMANLARI ========== */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(199, 193, 170, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(199, 193, 170, 0.025) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 90%);
+}
+
+.noise-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ========== TOUCH TARGETS — min 44px ========== */
+button,
+a[role="button"],
+.btn-primary,
+.btn-ghost,
+input[type="submit"] {
+  min-height: 44px;
+}
+
+input,
+textarea {
+  min-height: 44px;
+}
+
+/* ========== UTILITIES ========== */
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 32px;
+  height: 1px;
+  background-color: #93c93c;
+  margin-right: 0.75rem;
+  vertical-align: middle;
+}
+
+/* ========== FADE-IN ANIMASYONLARI ========== */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ========== SCROLL-TRIGGERED REVEAL ========== */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hafif staggered delay'ler */
+.reveal[data-delay="100"] { transition-delay: 100ms; }
+.reveal[data-delay="200"] { transition-delay: 200ms; }
+.reveal[data-delay="300"] { transition-delay: 300ms; }
+.reveal[data-delay="400"] { transition-delay: 400ms; }
